@@ -138,19 +138,19 @@ Hasil akhir konfigurasi interface pada masing-masing client dapat dilihat pada s
 Setelah semua interface dikonfigurasi, dilakukan pengujian ping dari masing-masing client ke seluruh client lainnya untuk membuktikan bahwa seluruh entitas sudah saling terhubung melalui routing pada router Lain.
 
 **Alice to Others**
-![alice-ping-others](assets/alice-ping-others.png)
+![alice-ping-others](assest/3-tes-ping-alice.png)
 
 **Mika to Others**
-![mika-ping-others](assets/mika-ping-others.png)
+![mika-ping-others](assest/3-tes-ping-mika.png)
 
 **Chisa to Others**
 ![chisa-ping-others](assets/chisa-ping-others.png)
 
 **Knights to Others**
-![knights-ping-others](assets/knights-ping-others.png)
+![knights-ping-others](assest/3-tes-ping-knights.png)
 
 **Eiri to Others**
-![eiri-ping-others](assets/eiri-ping-others.png)
+![eiri-ping-others](assest/3-tes-ping-eiri.png)
 
 4. Lain ingin agar setiap Entitas (Client) memiliki kemandirian di The Wired. Konfigurasikan firewall/iptables (NAT Masquerade) dan DNS resolver agar setiap Client dapat terhubung ke internet secara mandiri (dapat melakukan ping ke 8.8.8.8 dan membuka domain web google.com).
 
