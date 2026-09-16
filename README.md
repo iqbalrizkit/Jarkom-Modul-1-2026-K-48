@@ -43,7 +43,7 @@ Tujuannya adalah agar interface **eth0** yang terhubung ke NAT bisa memperoleh a
 
 Setelah konfigurasi diterapkan, dilakukan pengecekan menggunakan `ip a` untuk memastikan eth0 sudah mendapatkan IP dari DHCP dan bisa melakukan ping ke internet (misalnya `ping 8.8.8.8`).
 
-![lain-inet-ok](assets/lain-i)
+![Cek ip dan ping](assets/2-cek-ip-&-ping-8888.png)
 
 3. Setelah router Lain terhubung ke internet, pastikan seluruh Entitas (Client) di bawah Switch 1, Switch 2, dan Switch 3 dapat saling terhubung dan berkomunikasi satu sama lain melalui konfigurasi routing.
 
