@@ -144,7 +144,7 @@ Setelah semua interface dikonfigurasi, dilakukan pengujian ping dari masing-masi
 ![mika-ping-others](assest/3-tes-ping-mika.png)
 
 **Chisa to Others**
-![chisa-ping-others](assets/chisa-ping-others.png)
+![chisa-ping-others](assest/3-tes-ping-chisa.png)
 
 **Knights to Others**
 ![knights-ping-others](assest/3-tes-ping-knights.png)
