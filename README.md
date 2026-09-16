@@ -132,7 +132,8 @@ iface eth0 inet static
 
 Hasil akhir konfigurasi interface pada masing-masing client dapat dilihat pada screenshot berikut:
 
-![iface-alice](assets/iface-alice.png) ![iface-mika](assets/iface-mika.png) ![iface-chisa](assets/iface-chisa.png) ![iface-knights](assets/iface-knights.png) ![iface-eiri](assets/iface-eiri.png)
+![iface-alice](assest/3-ip-alice.png) ![iface-mika](assest/3-ip-mika.png) ![iface-chisa](assest/3-ip-chisa.png)
+![iface-knights](assest/3-ip-kngihts.png) ![iface-eiri](assest/3-ip-eiri.png)
 
 Setelah semua interface dikonfigurasi, dilakukan pengujian ping dari masing-masing client ke seluruh client lainnya untuk membuktikan bahwa seluruh entitas sudah saling terhubung melalui routing pada router Lain.
 
