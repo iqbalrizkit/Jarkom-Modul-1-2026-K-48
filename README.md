@@ -1,11 +1,11 @@
 # JARKOM MODUL 1 - THE WIRED
 
-## Member
+## Member K-48
 
 | Nama | NRP |
 | ---- | --- |
 | Nama Anggota 1 | NRP Anggota 1 |
-| Nama Anggota 2 | NRP Anggota 2 |
+| Iqbal Rizki Muhammad Fadhli | 5027251027 |
 
 ## Laporan
 
