@@ -53,24 +53,24 @@ Setelah konfigurasi diterapkan, dilakukan pengecekan menggunakan `ip a` untuk me
 
 Langkah pertama adalah mengonfigurasi IP pada interface router yang mengarah ke masing-masing switch, sehingga interface tersebut nantinya berperan sebagai gateway bagi client-client di bawahnya. Konfigurasi pada `/etc/network/interfaces` router Lain adalah sebagai berikut:
 
-\`\`\`
+```sh
 auto eth1
 iface eth1 inet static
-  address 10.55.1.1
+  address 192.235.1.1
   netmask 255.255.255.0
 
 auto eth2
 iface eth2 inet static
-  address 10.55.2.1
+  address 192.235.2.1
   netmask 255.255.255.0
 
 auto eth3
 iface eth3 inet static
-  address 10.55.3.1
+  address 192.235.3.1
   netmask 255.255.255.0
-\`\`\`
+```
 
-Interface **eth1** (Switch 1) diberi IP `10.55.1.1`, **eth2** (Switch 2) diberi IP `10.55.2.1`, dan **eth3** (Switch 3) diberi IP `10.55.3.1`.
+Interface **eth1** (Switch 1) diberi IP `192.235.1.1`, **eth2** (Switch 2) diberi IP `192.235.2.1`, dan **eth3** (Switch 3) diberi IP `192.235.3.1`.
 
 ![ip-switch](assets/ip-switch.png)
 
