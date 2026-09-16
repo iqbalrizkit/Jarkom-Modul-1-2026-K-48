@@ -72,7 +72,7 @@ iface eth3 inet static
 
 Interface **eth1** (Switch 1) diberi IP `192.235.1.1`, **eth2** (Switch 2) diberi IP `192.235.2.1`, dan **eth3** (Switch 3) diberi IP `192.235.3.1`.
 
-![ip-switch](assets/ip-switch.png)
+![ip-switch](assest/3-Konfigurasi-ip-switch.png)
 
 Selanjutnya dilakukan pengecekan menggunakan `ip -br a` untuk memastikan setiap interface router sudah memiliki alokasi IP yang benar.
 
