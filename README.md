@@ -152,6 +152,10 @@ Setelah semua interface dikonfigurasi, dilakukan pengujian ping dari masing-masi
 **Eiri to Others**
 ![eiri-ping-others](assest/3-tes-ping-eiri.png)
 
+
+<br>
+
+
 4. Lain ingin agar setiap Entitas (Client) memiliki kemandirian di The Wired. Konfigurasikan firewall/iptables (NAT Masquerade) dan DNS resolver agar setiap Client dapat terhubung ke internet secara mandiri (dapat melakukan ping ke 8.8.8.8 dan membuka domain web google.com).
 
 Langkah pertama adalah mengecek nameserver resolving pada router Lain yang sudah terkoneksi ke NAT, melalui file `/etc/resolv.conf`:
@@ -172,28 +176,36 @@ nameserver 192.168.122.1
 
 Selanjutnya, agar trafik dari client dapat diteruskan router menuju internet, dilakukan instalasi `iptables` pada router Lain:
 
-\`\`\`
+```sh
 apt update && apt install iptables -y
-\`\`\`
+```
 
-Setelah terinstal, jalankan rule NAT Masquerade berikut:
+Setelah terinstal, menjalankan rule NAT Masquerade berikut:
 
-\`\`\`
-iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE -s 10.55.0.0/16
-\`\`\`
+```sh
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE -s 192.235.0.0/24
+```
 
 - `iptables`: tools untuk konfigurasi inbound-outbound sebuah jaringan.
 - `-t nat`: menspesifikasikan tabel NAT untuk translasi alamat.
 - `-A POSTROUTING`: menambahkan rule pada chain POSTROUTING, yaitu untuk paket yang akan keluar dari sistem.
 - `-o eth0`: menspesifikasikan interface keluar, yaitu eth0 yang terhubung ke NAT.
 - `-j MASQUERADE`: mengganti source IP paket (dari client) menjadi IP interface eth0 router.
-- `-s 10.55.0.0/16`: sumber paket yang di-masquerade, yaitu seluruh subnet The Wired.
+- `-s 192.235.0.0/24`: sumber paket yang di-masquerade, yaitu seluruh subnet The Wired.
 
-![lain-forwarding-ip-firewall](assets/lain-forwarding-ip-firewall.png)
+![lain-forwarding-ip-firewall](assest/4-root-iptables.png)
 
 Setelah semua konfigurasi diterapkan, dilakukan pengujian pada masing-masing client dengan melakukan ping ke `8.8.8.8` dan `google.com` untuk membuktikan bahwa setiap client sudah dapat terhubung ke internet secara mandiri.
 
-![client-inet-ok](assets/client-inet-ok.png)
+![alice-ping-google](assest/4-alice-tes-ping-google.png)
+![mika-ping-google](assest/4-mika-tes-ping-google.png)
+![chisa-ping-google](assest/4-chisa-tes-ping-google.png)
+![knights-ping-google](assest/4-knights-tes-ping-google.png)
+![eiri-ping-google](assest/4-eiri-tes-ping-google.png)
+
+
+<br>
+
 
 5. Eiri tetap berupaya menanamkan kekacauan ke dalam jaringan. Untuk mengantisipasi restart tiba-tiba, pastikan seluruh konfigurasi jaringan tidak hilang saat semua node di-restart. Buat script verifikasi di `/root/cek_status.sh` pada router Lain yang menampilkan ringkasan interface (`ip -br a`) dan status tabel NAT (`iptables -t nat -L -v -n`) setelah reboot.
 
