@@ -32,20 +32,18 @@ Prefix IP yang digunakan oleh kelompok kami adalah `192.235.x.x`, dengan pembagi
 
 2. Karena menurut Lain pada saat itu The Wired masih terisolasi dari dunia luar, konfigurasikan router Lain agar dapat tersambung langsung ke jaringan internet publik melalui NAT/DHCP pada interface eth0.
 
-Agar router Lain dapat terkoneksi ke internet, interface `eth0` yang terhubung ke NAT dikonfigurasi untuk mendapatkan IP secara DHCP melalui file `/etc/network/interfaces`:
-
-\`\`\`
+Agar router Lain dapat terkoneksi ke internet, interface `eth0` yang terhubung ke NAT dikonfigurasi untuk mendapatkan IP secara DHCP dengan mengedit Network Configuration:
+```sh
 auto eth0
 iface eth0 inet dhcp
-\`\`\`
-
+```
 Tujuannya adalah agar interface **eth0** yang terhubung ke NAT bisa memperoleh alamat IP secara otomatis dari DHCP server.
 
-![Topologi The Wired](assest/1-The-Wired.png)
+![KOnfigurasi Router Lain](assest/2-Konfigurasi-Router-Lain.png)
 
 Setelah konfigurasi diterapkan, dilakukan pengecekan menggunakan `ip a` untuk memastikan eth0 sudah mendapatkan IP dari DHCP dan bisa melakukan ping ke internet (misalnya `ping 8.8.8.8`).
 
-![lain-inet-ok](assets/lain-inet-ok.png)
+![lain-inet-ok](assets/lain-i)
 
 3. Setelah router Lain terhubung ke internet, pastikan seluruh Entitas (Client) di bawah Switch 1, Switch 2, dan Switch 3 dapat saling terhubung dan berkomunikasi satu sama lain melalui konfigurasi routing.
 
