@@ -156,15 +156,19 @@ Setelah semua interface dikonfigurasi, dilakukan pengujian ping dari masing-masi
 
 Langkah pertama adalah mengecek nameserver resolving pada router Lain yang sudah terkoneksi ke NAT, melalui file `/etc/resolv.conf`:
 
-![lain-resolve-dns](assets/lain-resolve-dns.png)
+![lain-nameserver](assest/4-root-nameserver.png)
 
-Nameserver yang didapat (misalnya `192.168.122.1`) kemudian ditambahkan ke file `/etc/resolv.conf` pada masing-masing client:
+Nameserver yang didapat `192.168.122.1` kemudian ditambahkan ke file `/etc/resolv.conf` pada masing-masing client:
 
-\`\`\`
+```sh
 nameserver 192.168.122.1
-\`\`\`
+```
 
-![client-resolve-config](assets/client-resolve-config.png)
+![alice-add](assest/4-alice-add-nameserver.png)
+![mika-add](assest/4-mika-add-nameserver.png)
+![chisa-add](assest/4-chisa-add-nameserver.png)
+![knights-add](assest/4-knights-add-nameserver.png)
+![eiri-add](assest/4-eiri-add-nameserver.png)
 
 Selanjutnya, agar trafik dari client dapat diteruskan router menuju internet, dilakukan instalasi `iptables` pada router Lain:
 
