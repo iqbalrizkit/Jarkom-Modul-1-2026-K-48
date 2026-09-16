@@ -76,59 +76,59 @@ Interface **eth1** (Switch 1) diberi IP `192.235.1.1`, **eth2** (Switch 2) diber
 
 Selanjutnya dilakukan pengecekan menggunakan `ip -br a` untuk memastikan setiap interface router sudah memiliki alokasi IP yang benar.
 
-![resolve-ip-switch](assets/resolve-ip-switch.png)
+![ip-switch](assest/3-Cek-ip-switch.png)
 
 Setelah router selesai dikonfigurasi, setiap client diberi IP static beserta gateway sesuai switch tempat ia terhubung. Berikut konfigurasi masing-masing client:
 
 **Alice**
 
-\`\`\`
+```sh
 auto eth0
 iface eth0 inet static
-  address 10.55.1.2
+  address 192.235.1.12
   netmask 255.255.255.0
-  gateway 10.55.1.1
-\`\`\`
+  gateway 192.235.1.1
+```
 
 **Mika**
 
-\`\`\`
+```sh
 auto eth0
 iface eth0 inet static
-  address 10.55.1.3
+  address 192.235.1.3
   netmask 255.255.255.0
-  gateway 10.55.1.1
-\`\`\`
+  gateway 192.235.1.1
+```
 
 **Chisa**
 
-\`\`\`
+```sh
 auto eth0
 iface eth0 inet static
-  address 10.55.2.2
+  address 192.235.2.2
   netmask 255.255.255.0
-  gateway 10.55.2.1
-\`\`\`
+  gateway 192.235.2.1
+```
 
 **Knights**
 
-\`\`\`
+```sh
 auto eth0
 iface eth0 inet static
-  address 10.55.3.2
+  address 192.235.3.2
   netmask 255.255.255.0
-  gateway 10.55.3.1
-\`\`\`
+  gateway 192.235.3.1
+```
 
 **Eiri**
 
-\`\`\`
+```sh
 auto eth0
 iface eth0 inet static
-  address 10.55.3.3
+  address 192.235.3.3
   netmask 255.255.255.0
-  gateway 10.55.3.1
-\`\`\`
+  gateway 192.235.3.1
+```
 
 Hasil akhir konfigurasi interface pada masing-masing client dapat dilihat pada screenshot berikut:
 
