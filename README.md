@@ -85,7 +85,7 @@ Setelah router selesai dikonfigurasi, setiap client diberi IP static beserta gat
 ```sh
 auto eth0
 iface eth0 inet static
-  address 192.235.1.12
+  address 192.235.1.2
   netmask 255.255.255.0
   gateway 192.235.1.1
 ```
