@@ -213,62 +213,134 @@ Agar konfigurasi tidak hilang saat node di-restart, seluruh konfigurasi interfac
 
 **Router Lain**
 
-\`\`\`
+```sh
 cat <<EOF > /etc/network/interfaces
 auto eth0
 iface eth0 inet dhcp
 
 auto eth1
 iface eth1 inet static
-  address 10.55.1.1
+  address 192.235.1.1
   netmask 255.255.255.0
 
 auto eth2
 iface eth2 inet static
-  address 10.55.2.1
+  address 192.235.2.1
   netmask 255.255.255.0
 
 auto eth3
 iface eth3 inet static
-  address 10.55.3.1
+  address 192.235.3.1
   netmask 255.255.255.0
 EOF
 
 apt update
 which iptables &>/dev/null || apt install iptables -y
 
-iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE -s 10.55.0.0/16
-\`\`\`
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE -s 192.235.0.0/24
+```
 
-**Alice / Mika / Chisa / Knights / Eiri** (contoh untuk Alice)
+**Alice** 
 
-\`\`\`
+```sh
 cat <<EOF > /etc/network/interfaces
 auto eth0
 iface eth0 inet static
-  address 10.55.1.2
+  address 192.235.1.2
   netmask 255.255.255.0
   gateway 10.55.1.1
 EOF
 
 grep -q "nameserver 192.168.122.1" /etc/resolv.conf || echo "nameserver 192.168.122.1" >> /etc/resolv.conf
-\`\`\`
+```
+
+**Mika**
+
+```sh
+cat <<EOF > /etc/network/interfaces
+auto eth0
+iface eth0 inet static
+  address 192.235.1.3
+  netmask 255.255.255.0
+  gateway 192.235.1.1
+EOF
+
+grep -q "nameserver 192.168.122.1" /etc/resolv.conf || echo "nameserver 192.168.122.1" >> /etc/resolv.conf
+```
+
+**Chisa**
+
+```sh
+cat <<EOF > /etc/network/interfaces
+auto eth0
+iface eth0 inet static
+  address 192.235.2.2
+  netmask 255.255.255.0
+  gateway 192.235.2.1
+EOF
+
+grep -q "nameserver 192.168.122.1" /etc/resolv.conf || echo "nameserver 192.168.122.1" >> /etc/resolv.conf
+```
+
+**Knights** 
+
+```sh
+cat <<EOF > /etc/network/interfaces
+auto eth0
+iface eth0 inet static
+  address 192.235.3.2
+  netmask 255.255.255.0
+  gateway 192.235.3.1
+EOF
+
+grep -q "nameserver 192.168.122.1" /etc/resolv.conf || echo "nameserver 192.168.122.1" >> /etc/resolv.conf
+```
+
+**Eiri** 
+
+```sh
+cat <<EOF > /etc/network/interfaces
+auto eth0
+iface eth0 inet static
+  address 192.235.3.3
+  netmask 255.255.255.0
+  gateway 192.235.3.1
+EOF
+
+grep -q "nameserver 192.168.122.1" /etc/resolv.conf || echo "nameserver 192.168.122.1" >> /etc/resolv.conf
+```
 
 Selanjutnya, dibuat script verifikasi pada router Lain di `/root/cek_status.sh` untuk memastikan konfigurasi jaringan tetap ada setelah reboot:
 
-\`\`\`
-cat <<'EOF' > /root/cek_status.sh
-#!/bin/bash
-echo "=== Ringkasan Interface ==="
-ip -br a
+```sh
+echo "======================================="
+echo " STATUS VERIFIKASI ROUTER"
+echo "======================================="
 
 echo ""
-echo "=== Status Tabel NAT ==="
-iptables -t nat -L -v -n
-EOF
+echo "--- IP Address tiap interface ---"
+ip a | grep -E "eth[0-9]|inet "
+
+echo ""
+echo "--- IP Forwarding ---"
+cat /proc/sys/net/ipv4/ip_forward
+
+echo ""
+echo "--- Rule NAT (iptables) ---"
+iptables -t nat -L -n -v
+
+echo ""
+echo "--- Routing Table ---"
+ip route
+
+echo ""
+echo "--- Test Ping ke tiap Gateway LAN ---"
+ping -c 2 192.235.1.1
+ping -c 2 192.235.2.1
+ping -c 2 192.235.3.1
 
 chmod +x /root/cek_status.sh
-\`\`\`
+```
 
 ![cek-status-script](assets/cek-status-script.png)
 
