@@ -238,7 +238,7 @@ apt install apache2 -y
 service apache2 start
 
 apt install ftp -y
-wget <link_file_soal8> -O laporan_intelijen.txt
+wget https://drive.google.com/drive/folders/1tvZpueSH9E3GWwXM6KNnM64Y5wNoIAYP?usp=sharing -O laporan_intelijen.txt
 ftp 192.235.2.2
 
 tshark -i eth0 -w /root/capture_scan.pcap &
@@ -283,5 +283,5 @@ tshark -i eth0 -w /root/capture_sshkey.pcap &
 
 ssh mika_admin@192.235.3.2
 
-wget <link_file_soal9> -O protokol_tujuh.pdf
+wget https://drive.google.com/drive/folders/1S3hG0dnZBTkCta4uILWwKVc6dSYYGRJ6?usp=sharing -O protokol_tujuh.pdf
 ftp 192.235.2.2
