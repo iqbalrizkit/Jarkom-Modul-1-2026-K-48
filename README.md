@@ -4,7 +4,7 @@
 
 | Nama | NRP |
 | ---- | --- |
-| Nama Anggota 1 | NRP Anggota 1 |
+| Tafidah Hasna Mumtazah | 5027251025 |
 | Iqbal Rizki Muhammad Fadhli | 5027251027 |
 
 ## Laporan
