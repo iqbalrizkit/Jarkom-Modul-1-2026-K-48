@@ -348,8 +348,8 @@ Setelah router Lain di-reboot, script dijalankan untuk membuktikan bahwa seluruh
 
 ```sh
 /root/cek_status.sh
-```sh
+```
 
-![cek-status-result](assets/cek-status-result.png)
+![cek-status-result](assest/5-root-verifikasi.png)
 
 Hasil di atas membuktikan bahwa meskipun router direstart, seluruh konfigurasi interface dan rule NAT Masquerade tetap tersimpan dan berjalan dengan baik, sehingga rencana Eiri untuk menanamkan kekacauan melalui restart tidak berhasil.
