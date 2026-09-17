@@ -342,13 +342,13 @@ ping -c 2 192.235.3.1
 chmod +x /root/cek_status.sh
 ```
 
-![cek-status-script](assets/cek-status-script.png)
+![cek-status-script](assest/5-root-cek_status-sh.png)
 
 Setelah router Lain di-reboot, script dijalankan untuk membuktikan bahwa seluruh konfigurasi interface dan NAT masih tetap ada:
 
-\`\`\`
+```sh
 /root/cek_status.sh
-\`\`\`
+```sh
 
 ![cek-status-result](assets/cek-status-result.png)
 
