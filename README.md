@@ -484,36 +484,29 @@ nohup sh -c "nc -lvkp 22 & nc -lvkp 80 &" > /tmp/test.out 2>&1 &
 
 Command diatas akan menjalankan port listening dibackground, dengan menggunakan nohup agar connection tetap persistent. Dan beberapa hal argument `-lvkp` untuk membuat connection listening terus dan tanda & agar berjalan dibackground. Hasilnya adalah dibawah ini
 
-[![](assets/listening-port-knights.png)](assets/listening-port-knights.png)
+[![](assets/listening-port-knights.png)](assets/12-listening-port-knights.png)
 
 Kemudian kita bisa coba melakukan pemindaian dari node Alice ke Knights pada port - port tersebut. Menggunakan contoh command berikut ini:
 
 ```
-nc -vz <IP_Knights> 22
-nc -vz <IP_Knights> 80
-nc -vz <IP_Knights> 7777
+nc -vz 192.235.3.2 22
+nc -vz 192.235.3.2 80
+nc -vz 192.235.3.2 7777
 ```
 
 Hasilnya adalah seperti dibawah ini:
 
-[![](assets/alice-nc-to-knights.png)](assets/alice-nc-to-knights.png)
+[![](assets/alice-nc-to-knights.png)](assets/12-alice-nc-to-knights.png)
 
 Terlihat bahwa port 22 dan 80 berstatus *open* (succeeded), sedangkan port 7777 berstatus *Connection refused* yang berarti tertutup.
 
 Pada waktu yang bersamaan dilakukan capturing traffic pada koneksi Alice ke Knights menggunakan Wireshark, dengan display filter berikut:
 
 ```
-ip.addr == <IP_Knights> && tcp
+ip.addr == 192.235.3.2 && tcp
 ```
 
-[![](assets/capture-alice-scan-knights.png)](assets/capture-alice-scan-knights.png)
-
-Selanjutnya untuk membedakan response dari port terbuka dan tertutup, dapat memanfaatkan display filter berikut:
-
-```
-tcp.flags.syn == 1 && tcp.flags.ack == 1
-tcp.flags.reset == 1
-```
+[![](assets/capture-alice-scan-knights.png)](assets/12-capture-alice-scan-knights.png)
 
 Dari hasil capture, terlihat perbedaan TCP Flag yang dikembalikan oleh Knights:
 
@@ -523,10 +516,7 @@ Dari hasil capture, terlihat perbedaan TCP Flag yang dikembalikan oleh Knights:
 | 80   | Terbuka  | SYN, ACK              | Ada service yang listening, sehingga server menyetujui koneksi dan three-way handshake dilanjutkan     |
 | 7777 | Tertutup | RST, ACK              | Tidak ada service yang listening, sehingga server langsung menolak koneksi dan me-reset percobaan SYN  |
 
-[![](assets/tcp-synack-open-port.png)](assets/tcp-synack-open-port.png)
-[![](assets/tcp-rstack-closed-port.png)](assets/tcp-rstack-closed-port.png)
-
-Hasil dari capture dapat dilihat [disini](captures/capture-alice-portscan-knights.pcapng)
+Hasil dari capture dapat dilihat [disini](captures/nomor-12-jarkom.pcapng)
 
 
 <br>
