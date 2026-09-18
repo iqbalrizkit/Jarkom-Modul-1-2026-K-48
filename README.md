@@ -484,7 +484,7 @@ nohup sh -c "nc -lvkp 22 & nc -lvkp 80 &" > /tmp/test.out 2>&1 &
 
 Command diatas akan menjalankan port listening dibackground, dengan menggunakan nohup agar connection tetap persistent. Dan beberapa hal argument `-lvkp` untuk membuat connection listening terus dan tanda & agar berjalan dibackground. Hasilnya adalah dibawah ini
 
-[![](assets/listening-port-knights.png)](assets/12-listening-port-knights.png)
+![assets/listening-port-knights.png](assest/12-listening-port-knights.png)
 
 Kemudian kita bisa coba melakukan pemindaian dari node Alice ke Knights pada port - port tersebut. Menggunakan contoh command berikut ini:
 
@@ -496,7 +496,7 @@ nc -vz 192.235.3.2 7777
 
 Hasilnya adalah seperti dibawah ini:
 
-[![](assets/alice-nc-to-knights.png)](assets/12-alice-nc-to-knights.png)
+![assets/alice-nc-to-knights.png](assest/12-alice-nc-to-knights.png)
 
 Terlihat bahwa port 22 dan 80 berstatus *open* (succeeded), sedangkan port 7777 berstatus *Connection refused* yang berarti tertutup.
 
@@ -506,7 +506,7 @@ Pada waktu yang bersamaan dilakukan capturing traffic pada koneksi Alice ke Knig
 ip.addr == 192.235.3.2 && tcp
 ```
 
-[![](assets/capture-alice-scan-knights.png)](assets/12-capture-alice-scan-knights.png)
+![assets/capture-alice-scan-knights.png](assest/12-capture-alice-scan-knights.png)
 
 Dari hasil capture, terlihat perbedaan TCP Flag yang dikembalikan oleh Knights:
 
