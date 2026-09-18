@@ -472,7 +472,7 @@ Adapun alasan mengapa setiap karakter terkirim dalam paket TCP yang terpisah ada
 
 [![](assets/telnet-single-char-packets.png)](assets/telnet-single-char-packets.png)
 
-Hasil dari capture dapat dilihat [disini](captures/capture-eiri-telnet-chisa.pcapng)
+Hasil dari capture dapat dilihat [disini](captures/nomor-11-jarkom.pcapng)
 
 
 <br>
