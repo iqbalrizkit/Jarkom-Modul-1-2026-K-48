@@ -556,7 +556,7 @@ service ssh restart
 - PasswordAuthentication no : menonaktifkan login menggunakan password
 - PubkeyAuthentication yes : mengaktifkan login menggunakan public key
 
-![assets/ssh-keygen-mika.png](assest/ssh-keygen-mika.png)
+![assets/ssh-keygen-mika.png](assest/13-ssh-keygen-mika.png)
 
 Kemudian melakukan cek koneksi apakah ssh server tersebut bisa berjalan dengan baik melalui node Mika menggunakan user mika_admin, dan login berhasil tanpa diminta password.
 
@@ -564,11 +564,11 @@ Kemudian melakukan cek koneksi apakah ssh server tersebut bisa berjalan dengan b
 ssh mika_admin@<IP_Knights>
 ```
 
-![assets/mika-ssh-knights.png](assets/mika-ssh-knights.png)
+![assets/mika-ssh-knights.png](assest/13-mika-ssh-knights.png)
 
 Bersamaan dengan login ke ssh Knights dapat dilakukan untuk melakukan capture connection tersebut menggunakan wireshark, dengan display filter `ssh`
 
-[![](assets/capture-mika-ssh-knights.png)](assets/capture-mika-ssh-knights.png)
+[![](assets/capture-mika-ssh-knights.png)](assest/13-capture-mika-ssh-knights.png)
 
 Dari hasil capture tersebut dapat diidentifikasi beberapa paket penting, yaitu:
 
