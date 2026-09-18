@@ -360,48 +360,63 @@ Hasil di atas membuktikan bahwa meskipun router direstart, seluruh konfigurasi i
 
 10. Knights melancarkan uji ketahanan koneksi ke server Chisa untuk menguji latensi jaringan The Wired. Kirimkan paket ping dari node Knights ke node Chisa dengan payload khusus 128 bytes dan interval 0.3 detik sebanyak 77 paket (ping -c 77 -s 128 -i 0.3 <IP_Chisa>). Buka Wireshark, catat nilai ICMP Type dan Code untuk Echo Request vs Echo Reply, serta analisis packet loss dan RTT (min/avg/max).
 
-Menggunakan command berikut untuk melakukan ping dari node Knights ke node Chisa:
+Menggunakan command berikut untuk melakukan ping dari node Knights ke node Chisa (`192.235.2.2`):
 
 ```
-ping -c 77 -s 128 -i 0.3 <IP_Chisa>
+ping -c 77 -s 128 -i 0.3 192.235.2.2
 ```
 
-- -c 77 : mengirimkan sebanyak 77 paket
-- -s 128 : ukuran payload dari packet nya adalah 128 bytes
-- -i 0.3 : interval antar pengiriman paket adalah 0.3 detik
+- -c 77 : mengirimkan sebanyak 77 packet
+- -s 128 : size dari payload packet nya adalah 128 bytes
+- -i 0.3 : interval antar pengiriman packet adalah 0.3 detik
 
-[![](assets/ping-knights-to-chisa.png)](assets/ping-knights-to-chisa.png)
-
-Pada waktu yang bersamaan, dilakukan capturing traffic pada koneksi Knights ke Chisa menggunakan Wireshark, lalu diterapkan display filter `icmp` agar hanya paket ICMP yang tampil.
+Bersamaan dengan menjalankan ping tersebut, dilakukan capturing traffic menggunakan Wireshark pada koneksi antara Knights dan Chisa, kemudian diterapkan display filter `icmp` agar hanya paket ICMP yang ditampilkan.
 
 [![](assets/capture-icmp-knights-chisa.png)](assets/capture-icmp-knights-chisa.png)
 
-Dari hasil capture, dengan melihat bagian *Internet Control Message Protocol* pada masing - masing paket, didapatkan nilai Type dan Code sebagai berikut:
+Selanjutnya adalah melihat nilai **Type** dan **Code** pada bagian *Internet Control Message Protocol* dari masing - masing paket. Berikut adalah hasil dari paket **Echo Reply** (Frame 2, dari Chisa `192.235.2.2` ke Knights `192.235.3.2`):
 
-| Jenis Paket  | ICMP Type | ICMP Code |
-| ------------ | --------- | --------- |
-| Echo Request | 8         | 0         |
-| Echo Reply   | 0         | 0         |
+[![](assets/icmp-echo-reply.png)](assets/icmp-echo-reply.png)
 
-[![](assets/icmp-type-code-request.png)](assets/icmp-type-code-request.png)
-[![](assets/icmp-type-code-reply.png)](assets/icmp-type-code-reply.png)
+Dan berikut adalah hasil dari paket **Echo Request** (Frame 1, dari Knights ke Chisa):
 
-Perlu diperhatikan bahwa payload sebesar 128 bytes ditambah 8 bytes header ICMP akan menghasilkan 136 bytes pada output ping, dan ukuran ini juga sesuai dengan yang terlihat pada Wireshark.
+[![](assets/icmp-echo-request.png)](assets/icmp-echo-request.png)
 
-Selanjutnya adalah menganalisis packet loss dan RTT dari statistik akhir hasil ping tersebut.
+Sehingga didapatkan perbandingan nilai Type dan Code sebagai berikut:
+
+| Jenis Paket  | ICMP Type       | ICMP Code |
+| ------------ | --------------- | --------- |
+| Echo Request | 8 (Echo request) | 0         |
+| Echo Reply   | 0 (Echo reply)   | 0         |
+
+Selain itu, pada paket Echo Reply terlihat bahwa ukuran paket adalah **170 bytes on wire**. Ukuran ini sesuai dengan perhitungan berikut:
+
+- Payload : 128 bytes
+- ICMP header : 8 bytes (sehingga output ping menunjukkan 136 bytes)
+- IPv4 header : 20 bytes
+- Ethernet II header : 14 bytes
+- Total : 128 + 8 + 20 + 14 = **170 bytes**
+
+Pada paket Echo Reply juga terlihat bahwa *Sequence Number* bernilai 1 dan merujuk ke *Request frame: 1* dengan *Response time* sebesar **0.816 ms**, yang menandakan paket reply tersebut adalah balasan dari request pertama.
+
+Selanjutnya adalah menganalisis packet loss dan RTT dari hasil statistik ping tersebut, yang dapat dilihat pada screenshot berikut:
 
 [![](assets/ping-statistics-knights-chisa.png)](assets/ping-statistics-knights-chisa.png)
 
-| Parameter           | Hasil    |
-| ------------------- | -------- |
-| Packet Transmitted  | 77       |
-| Packet Received     | [isi]    |
-| Packet Loss         | [isi]%   |
-| RTT Min             | [isi] ms |
-| RTT Avg             | [isi] ms |
-| RTT Max             | [isi] ms |
+| Parameter          | Hasil                |
+| ------------------ | -------------------- |
+| Packet Transmitted | 77                   |
+| Packet Received    | 77                   |
+| Packet Loss        | 0%                   |
+| Total Time         | 23086 ms             |
+| RTT Min            | 0.481 ms             |
+| RTT Avg            | 0.705 ms             |
+| RTT Max            | 1.140 ms             |
+| RTT Mdev           | 0.141 ms             |
 
-Jika dilihat pada hasil diatas, [isi analisis: misal tidak ada packet loss dan nilai RTT masih tergolong normal/stabil untuk jaringan lokal, sehingga koneksi ke server Chisa dapat dikatakan tahan terhadap uji yang dilakukan Knights].
+Jika dilihat pada hasil diatas, dari 77 packet yang dikirim semuanya berhasil diterima kembali sehingga **tidak ada packet loss (0%)**. Nilai RTT juga tergolong sangat rendah dan stabil, dengan rata - rata **0.705 ms** dan selisih antara min dan max yang kecil (mdev hanya 0.141 ms), sehingga dapat disimpulkan bahwa uji ketahanan yang dilakukan Knights tidak mempengaruhi kinerja server Chisa dan koneksinya masih dalam kondisi baik.
+
+Untuk waktu total 23086 ms juga sesuai dengan konfigurasi interval, yaitu 76 kali jeda x 0.3 detik = 22.8 detik, ditambah waktu tunggu reply terakhir. Kemudian nilai `ttl=63` pada tiap reply menunjukkan bahwa paket melewati 1 hop router (TTL awal 64 dikurangi 1) antara Knights dan Chisa, yang sesuai dengan perbedaan subnet antara `192.235.3.2` dan `192.235.2.2`.
 
 Hasil dari capture dapat dilihat [disini](captures/capture-knights-chisa-ping.pcapng)
 
