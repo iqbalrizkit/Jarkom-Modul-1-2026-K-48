@@ -372,15 +372,15 @@ ping -c 77 -s 128 -i 0.3 192.235.2.2
 
 Bersamaan dengan menjalankan ping tersebut, dilakukan capturing traffic menggunakan Wireshark pada koneksi antara Knights dan Chisa, kemudian diterapkan display filter `icmp` agar hanya paket ICMP yang ditampilkan.
 
-[![](assets/capture-icmp-knights-chisa.png)](assets/capture-icmp-knights-chisa.png)
+![capture-icmp-knights-chisa)](assest/10-capture-icmp-knights-chisa.png)
 
 Selanjutnya adalah melihat nilai **Type** dan **Code** pada bagian *Internet Control Message Protocol* dari masing - masing paket. Berikut adalah hasil dari paket **Echo Reply** (Frame 2, dari Chisa `192.235.2.2` ke Knights `192.235.3.2`):
 
-[![](assets/icmp-echo-reply.png)](assets/icmp-echo-reply.png)
+![icmp-echo-reply](assest/10-icmp-echo-reply.png)
 
 Dan berikut adalah hasil dari paket **Echo Request** (Frame 1, dari Knights ke Chisa):
 
-[![](assets/icmp-echo-request.png)](assets/icmp-echo-request.png)
+![icmp-echo-request](assest/10-icmp-echo-request.png)
 
 Sehingga didapatkan perbandingan nilai Type dan Code sebagai berikut:
 
@@ -401,7 +401,7 @@ Pada paket Echo Reply juga terlihat bahwa *Sequence Number* bernilai 1 dan meruj
 
 Selanjutnya adalah menganalisis packet loss dan RTT dari hasil statistik ping tersebut, yang dapat dilihat pada screenshot berikut:
 
-[![](assets/ping-statistics-knights-chisa.png)](assets/ping-statistics-knights-chisa.png)
+![assets/ping-statistics-knights-chisa.png](assest/10-ping-statistics-knights-chisa.png)
 
 | Parameter          | Hasil                |
 | ------------------ | -------------------- |
@@ -418,7 +418,7 @@ Jika dilihat pada hasil diatas, dari 77 packet yang dikirim semuanya berhasil di
 
 Untuk waktu total 23086 ms juga sesuai dengan konfigurasi interval, yaitu 76 kali jeda x 0.3 detik = 22.8 detik, ditambah waktu tunggu reply terakhir. Kemudian nilai `ttl=63` pada tiap reply menunjukkan bahwa paket melewati 1 hop router (TTL awal 64 dikurangi 1) antara Knights dan Chisa, yang sesuai dengan perbedaan subnet antara `192.235.3.2` dan `192.235.2.2`.
 
-Hasil dari capture dapat dilihat [disini](captures/capture-knights-chisa-ping.pcapng)
+Hasil dari capture dapat dilihat [disini](captures/nomor-10-jarkom.pcapng)
 
 
 <br>
