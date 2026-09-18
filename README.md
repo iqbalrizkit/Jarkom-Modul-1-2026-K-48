@@ -448,29 +448,25 @@ echo "phantom_user:wired_ghost" | chpasswd
 
 Hasilnya seperti dibawah
 
-[![](assets/new-user-phantom.png)](assets/new-user-phantom.png)
+![assets/new-user-phantom](assest/11-create-user-phantom-chisa.png)
 
-Selanjutnya adalah mencoba untuk login atau masuk ke node Chisa dari node Eiri menggunakan telnet tersebut, proof nya ada di screenshot berikut ini:
+Selanjutnya adalah mencoba untuk login atau masuk ke node Chisa dari node Eiri menggunakan telnet tersebut:
 
 ```
-telnet <IP_Chisa>
+telnet 192.235.2.2
 ```
-
-[![](assets/eiri-telnet-chisa.png)](assets/eiri-telnet-chisa.png)
 
 Pada waktu yang bersamaan yaitu melakukan capturing traffic terhadap koneksi telnet tersebut.
 
-[![](assets/capture-eiri-to-chisa.png)](assets/capture-eiri-to-chisa.png)
+![capture-eiri-to-chisa.png](assest/11-capture-eiri-to-chisa.png)
 
 Setelah itu, terapkan display filter `telnet` lalu klik kanan pada salah satu paket dan pilih **Follow > TCP Stream**. Pada hasilnya terlihat bahwa username `phantom_user` dan password `wired_ghost` dapat terbaca sebagai plain text.
 
-[![](assets/follow-tcp-stream-telnet.png)](assets/follow-tcp-stream-telnet.png)
+![follow-tcp-stream-telnet](assest/11-follow-tcp-stream-telnet.png)
 
 Hal ini membuktikan kelemahan protokol Telnet, yaitu seluruh data yang dikirim tidak dienkripsi sama sekali, sehingga siapapun yang berhasil menyadap jaringan dapat membaca kredensial secara langsung.
 
 Adapun alasan mengapa setiap karakter terkirim dalam paket TCP yang terpisah adalah karena Telnet bekerja dalam mode *character-at-a-time*. Setiap kali user menekan satu tombol, karakter tersebut langsung dikirim ke server dalam satu paket TCP (dengan payload 1 byte) tanpa menunggu user menekan Enter. Server kemudian akan mengembalikan karakter tersebut sebagai *echo* (remote echo) agar tampil di terminal user, sehingga pada Wireshark terlihat banyak paket kecil berulang untuk setiap karakter, yaitu paket dari client, echo dari server, dan ACK.
-
-[![](assets/telnet-single-char-packets.png)](assets/telnet-single-char-packets.png)
 
 Hasil dari capture dapat dilihat [disini](captures/nomor-11-jarkom.pcapng)
 
