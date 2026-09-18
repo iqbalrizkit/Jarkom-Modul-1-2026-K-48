@@ -568,7 +568,7 @@ ssh mika_admin@<IP_Knights>
 
 Bersamaan dengan login ke ssh Knights dapat dilakukan untuk melakukan capture connection tersebut menggunakan wireshark, dengan display filter `ssh`
 
-[![](assets/capture-mika-ssh-knights.png)](assest/13-capture-mika-ssh-knights.png)
+![assets/capture-mika-ssh-knights.png](assest/13-capture-mika-ssh-knights.png)
 
 Dari hasil capture tersebut dapat diidentifikasi beberapa paket penting, yaitu:
 
