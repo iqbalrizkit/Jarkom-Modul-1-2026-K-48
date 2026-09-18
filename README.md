@@ -531,18 +531,12 @@ apt install openssh-server -y
 service ssh start
 ```
 
-Setelah command diatas dijalankan maka seharusnya ssh server sudah berjalan di node Knights, terlihat pada screenshot dibawah ini:
-
-[![](assets/install-ssh-knights.png)](assets/install-ssh-knights.png)
-
 Next adalah membuat user mika_admin di node Knights (sebagai tujuan login) dan juga di node Mika (sebagai pemilik kunci)
 
 ```
 useradd -m -s /bin/bash mika_admin
 echo "mika_admin:mika123" | chpasswd
 ```
-
-[![](assets/new-user-mika-admin.png)](assets/new-user-mika-admin.png)
 
 Setelah itu pada node Mika, login sebagai user mika_admin kemudian membuat pasangan kunci SSH menggunakan `ssh-keygen`
 
@@ -551,17 +545,7 @@ su - mika_admin
 ssh-keygen -t ed25519
 ```
 
-[![](assets/ssh-keygen-mika.png)](assets/ssh-keygen-mika.png)
-
-Dari command diatas akan terbentuk private key `~/.ssh/id_ed25519` dan public key `~/.ssh/id_ed25519.pub`. Selanjutnya public key tersebut perlu didaftarkan ke node Knights, yaitu dengan command berikut (dilakukan sebelum password authentication dimatikan):
-
-```
-ssh-copy-id mika_admin@<IP_Knights>
-```
-
-[![](assets/ssh-copy-id-mika.png)](assets/ssh-copy-id-mika.png)
-
-Kemudian pada node Knights, melakukan konfigurasi agar hanya bisa login menggunakan public key authentication, yaitu dengan mengubah file `/etc/ssh/sshd_config`
+Dari command diatas akan terbentuk private key `~/.ssh/id_ed25519` dan public key `~/.ssh/id_ed25519.pub`. Selanjutnya public key tersebut perlu didaftarkan ke node Knights. Kemudian pada node Knights, melakukan konfigurasi agar hanya bisa login menggunakan public key authentication, yaitu dengan mengubah file `/etc/ssh/sshd_config`
 
 ```
 sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
@@ -572,7 +556,7 @@ service ssh restart
 - PasswordAuthentication no : menonaktifkan login menggunakan password
 - PubkeyAuthentication yes : mengaktifkan login menggunakan public key
 
-[![](assets/sshd-config-knights.png)](assets/sshd-config-knights.png)
+![assets/ssh-keygen-mika.png](assest/ssh-keygen-mika.png)
 
 Kemudian melakukan cek koneksi apakah ssh server tersebut bisa berjalan dengan baik melalui node Mika menggunakan user mika_admin, dan login berhasil tanpa diminta password.
 
@@ -580,7 +564,7 @@ Kemudian melakukan cek koneksi apakah ssh server tersebut bisa berjalan dengan b
 ssh mika_admin@<IP_Knights>
 ```
 
-[![](assets/mika-ssh-knights.png)](assets/mika-ssh-knights.png)
+![assets/mika-ssh-knights.png](assets/mika-ssh-knights.png)
 
 Bersamaan dengan login ke ssh Knights dapat dilakukan untuk melakukan capture connection tersebut menggunakan wireshark, dengan display filter `ssh`
 
@@ -588,18 +572,8 @@ Bersamaan dengan login ke ssh Knights dapat dilakukan untuk melakukan capture co
 
 Dari hasil capture tersebut dapat diidentifikasi beberapa paket penting, yaitu:
 
-- **Protocol Version Exchange**: paket pertama dimana client dan server saling bertukar informasi versi protokol SSH yang digunakan (contoh `SSH-2.0-OpenSSH_x.x`). Paket ini masih terlihat plain text karena hanya berisi informasi versi dan belum ada data sensitif.
-
-[![](assets/ssh-protocol-version-exchange.png)](assets/ssh-protocol-version-exchange.png)
-
-- **Key Exchange**: tahap dimana client dan server saling bertukar daftar algoritma (Key Exchange Init) lalu melakukan pertukaran kunci (Diffie-Hellman/ECDH Key Exchange Init dan Reply) untuk membentuk *session key* bersama, diakhiri dengan paket *New Keys* sebagai tanda enkripsi mulai diaktifkan.
-
-[![](assets/ssh-key-exchange.png)](assets/ssh-key-exchange.png)
-
-Setelah paket *New Keys*, semua paket berikutnya hanya tampil sebagai *Encrypted packet*.
-
-[![](assets/ssh-encrypted-packet.png)](assets/ssh-encrypted-packet.png)
+**Protocol Version Exchange**: paket pertama dimana client dan server saling bertukar informasi versi protokol SSH yang digunakan (contoh `SSH-2.0-OpenSSH_x.x`). Paket ini masih terlihat plain text karena hanya berisi informasi versi dan belum ada data sensitif. Key Exchange, tahap dimana client dan server saling bertukar daftar algoritma (Key Exchange Init) lalu melakukan pertukaran kunci (Diffie-Hellman/ECDH Key Exchange Init dan Reply) untuk membentuk *session key* bersama, diakhiri dengan paket *New Keys* sebagai tanda enkripsi mulai diaktifkan.
 
 Alasan mengapa kredensial tidak terlihat seperti pada Telnet adalah karena SSH mengenkripsi seluruh komunikasi setelah proses Key Exchange selesai, termasuk proses autentikasi. Berbeda dengan Telnet yang mengirim username dan password sebagai plain text, pada SSH data tersebut sudah terenkripsi dengan session key yang hanya diketahui oleh client dan server. Terlebih pada kasus ini menggunakan public key authentication, sehingga tidak ada password yang dikirim sama sekali. Private key tidak pernah meninggalkan node Mika, dan client hanya membuktikan kepemilikannya melalui tanda tangan digital (signature) yang juga terenkripsi di dalam sesi. Sehingga meskipun trafik berhasil disadap, penyerang hanya melihat data acak yang tidak dapat dibaca.
 
-Hasil dari capture dapat dilihat [disini](captures/capture-mika-ssh-knights.pcapng)
+Hasil dari capture dapat dilihat [disini](captures/nomor-13-jarkom.pcapng)
