@@ -353,3 +353,252 @@ Setelah router Lain di-reboot, script dijalankan untuk membuktikan bahwa seluruh
 ![cek-status-result](assest/5-root-verifikasi.png)
 
 Hasil di atas membuktikan bahwa meskipun router direstart, seluruh konfigurasi interface dan rule NAT Masquerade tetap tersimpan dan berjalan dengan baik, sehingga rencana Eiri untuk menanamkan kekacauan melalui restart tidak berhasil.
+
+
+<br>
+
+
+10. Knights melancarkan uji ketahanan koneksi ke server Chisa untuk menguji latensi jaringan The Wired. Kirimkan paket ping dari node Knights ke node Chisa dengan payload khusus 128 bytes dan interval 0.3 detik sebanyak 77 paket (ping -c 77 -s 128 -i 0.3 <IP_Chisa>). Buka Wireshark, catat nilai ICMP Type dan Code untuk Echo Request vs Echo Reply, serta analisis packet loss dan RTT (min/avg/max).
+
+Menggunakan command berikut untuk melakukan ping dari node Knights ke node Chisa:
+
+```
+ping -c 77 -s 128 -i 0.3 <IP_Chisa>
+```
+
+- -c 77 : mengirimkan sebanyak 77 paket
+- -s 128 : ukuran payload dari packet nya adalah 128 bytes
+- -i 0.3 : interval antar pengiriman paket adalah 0.3 detik
+
+[![](assets/ping-knights-to-chisa.png)](assets/ping-knights-to-chisa.png)
+
+Pada waktu yang bersamaan, dilakukan capturing traffic pada koneksi Knights ke Chisa menggunakan Wireshark, lalu diterapkan display filter `icmp` agar hanya paket ICMP yang tampil.
+
+[![](assets/capture-icmp-knights-chisa.png)](assets/capture-icmp-knights-chisa.png)
+
+Dari hasil capture, dengan melihat bagian *Internet Control Message Protocol* pada masing - masing paket, didapatkan nilai Type dan Code sebagai berikut:
+
+| Jenis Paket  | ICMP Type | ICMP Code |
+| ------------ | --------- | --------- |
+| Echo Request | 8         | 0         |
+| Echo Reply   | 0         | 0         |
+
+[![](assets/icmp-type-code-request.png)](assets/icmp-type-code-request.png)
+[![](assets/icmp-type-code-reply.png)](assets/icmp-type-code-reply.png)
+
+Perlu diperhatikan bahwa payload sebesar 128 bytes ditambah 8 bytes header ICMP akan menghasilkan 136 bytes pada output ping, dan ukuran ini juga sesuai dengan yang terlihat pada Wireshark.
+
+Selanjutnya adalah menganalisis packet loss dan RTT dari statistik akhir hasil ping tersebut.
+
+[![](assets/ping-statistics-knights-chisa.png)](assets/ping-statistics-knights-chisa.png)
+
+| Parameter           | Hasil    |
+| ------------------- | -------- |
+| Packet Transmitted  | 77       |
+| Packet Received     | [isi]    |
+| Packet Loss         | [isi]%   |
+| RTT Min             | [isi] ms |
+| RTT Avg             | [isi] ms |
+| RTT Max             | [isi] ms |
+
+Jika dilihat pada hasil diatas, [isi analisis: misal tidak ada packet loss dan nilai RTT masih tergolong normal/stabil untuk jaringan lokal, sehingga koneksi ke server Chisa dapat dikatakan tahan terhadap uji yang dilakukan Knights].
+
+Hasil dari capture dapat dilihat [disini](captures/capture-knights-chisa-ping.pcapng)
+
+
+<br>
+
+
+11. Buktikan kelemahan protokol Telnet dengan membuat akun phantom_user dan password wired_ghost pada layanan telnetd di node Chisa. Lakukan login Telnet dari node Eiri ke node Chisa dan tangkap sesi menggunakan Wireshark. Tunjukkan kredensial plain text melalui fitur Follow TCP Stream, serta jelaskan mengapa setiap karakter terkirim dalam paket TCP terpisah.
+
+Untuk menerapkan simulasi ini maka pertama perlu meng-install atau melakukan setup service telnet untuk node Chisa, dapat menggunakan beberapa command berikut ini:
+
+```
+apt install openbsd-inetd telnetd -y
+echo "telnet  stream  tcp     nowait  root  /usr/sbin/telnetd  telnetd" >> /etc/inetd.conf
+service openbsd-inetd restart
+service openbsd-inetd status
+```
+
+Dengan command diatas yaitu untuk menginstall service telnet dan melakukan konfigurasinya seharusnya sekarang telnet sudah berjalan pada node Chisa.
+
+[![](assets/telnet-success-chisa.png)](assets/telnet-success-chisa.png)
+
+Kemudian adalah membuat user untuk login ke telnet tersebut menggunakan command dibawah ini
+
+```
+useradd -m -s /bin/bash phantom_user
+echo "phantom_user:wired_ghost" | chpasswd
+```
+
+Hasilnya seperti dibawah
+
+[![](assets/new-user-phantom.png)](assets/new-user-phantom.png)
+
+Selanjutnya adalah mencoba untuk login atau masuk ke node Chisa dari node Eiri menggunakan telnet tersebut, proof nya ada di screenshot berikut ini:
+
+```
+telnet <IP_Chisa>
+```
+
+[![](assets/eiri-telnet-chisa.png)](assets/eiri-telnet-chisa.png)
+
+Pada waktu yang bersamaan yaitu melakukan capturing traffic terhadap koneksi telnet tersebut.
+
+[![](assets/capture-eiri-to-chisa.png)](assets/capture-eiri-to-chisa.png)
+
+Setelah itu, terapkan display filter `telnet` lalu klik kanan pada salah satu paket dan pilih **Follow > TCP Stream**. Pada hasilnya terlihat bahwa username `phantom_user` dan password `wired_ghost` dapat terbaca sebagai plain text.
+
+[![](assets/follow-tcp-stream-telnet.png)](assets/follow-tcp-stream-telnet.png)
+
+Hal ini membuktikan kelemahan protokol Telnet, yaitu seluruh data yang dikirim tidak dienkripsi sama sekali, sehingga siapapun yang berhasil menyadap jaringan dapat membaca kredensial secara langsung.
+
+Adapun alasan mengapa setiap karakter terkirim dalam paket TCP yang terpisah adalah karena Telnet bekerja dalam mode *character-at-a-time*. Setiap kali user menekan satu tombol, karakter tersebut langsung dikirim ke server dalam satu paket TCP (dengan payload 1 byte) tanpa menunggu user menekan Enter. Server kemudian akan mengembalikan karakter tersebut sebagai *echo* (remote echo) agar tampil di terminal user, sehingga pada Wireshark terlihat banyak paket kecil berulang untuk setiap karakter, yaitu paket dari client, echo dari server, dan ACK.
+
+[![](assets/telnet-single-char-packets.png)](assets/telnet-single-char-packets.png)
+
+Hasil dari capture dapat dilihat [disini](captures/capture-eiri-telnet-chisa.pcapng)
+
+
+<br>
+
+
+12. Alice mencurigai Knights menjalankan beberapa layanan rahasia di node-nya. Lakukan pemindaian port dari node Alice ke node Knights menggunakan Netcat (nc) untuk memeriksa port 22 (SSH) dan 80 (HTTP) dalam keadaan terbuka, serta port rahasia 7777 dalam keadaan tertutup. Analisis di Wireshark perbedaan TCP Flag yang dikembalikan antara port terbuka (SYN-ACK) dengan port tertutup (RST-ACK).
+
+Pertama untuk mensimulasikan hal tersebut maka dapat membuat fake connection listening dari node Knights menggunakan *netcat*. Karena simulasi untuk port yang terbuka diharuskan port 22 dan 80 maka dari itu disini hanya melakukan listening terhadap connection tersebut. Sedangkan port 7777 sengaja tidak dilakukan listening agar berstatus tertutup.
+
+```
+nohup sh -c "nc -lvkp 22 & nc -lvkp 80 &" > /tmp/test.out 2>&1 &
+```
+
+Command diatas akan menjalankan port listening dibackground, dengan menggunakan nohup agar connection tetap persistent. Dan beberapa hal argument `-lvkp` untuk membuat connection listening terus dan tanda & agar berjalan dibackground. Hasilnya adalah dibawah ini
+
+[![](assets/listening-port-knights.png)](assets/listening-port-knights.png)
+
+Kemudian kita bisa coba melakukan pemindaian dari node Alice ke Knights pada port - port tersebut. Menggunakan contoh command berikut ini:
+
+```
+nc -vz <IP_Knights> 22
+nc -vz <IP_Knights> 80
+nc -vz <IP_Knights> 7777
+```
+
+Hasilnya adalah seperti dibawah ini:
+
+[![](assets/alice-nc-to-knights.png)](assets/alice-nc-to-knights.png)
+
+Terlihat bahwa port 22 dan 80 berstatus *open* (succeeded), sedangkan port 7777 berstatus *Connection refused* yang berarti tertutup.
+
+Pada waktu yang bersamaan dilakukan capturing traffic pada koneksi Alice ke Knights menggunakan Wireshark, dengan display filter berikut:
+
+```
+ip.addr == <IP_Knights> && tcp
+```
+
+[![](assets/capture-alice-scan-knights.png)](assets/capture-alice-scan-knights.png)
+
+Selanjutnya untuk membedakan response dari port terbuka dan tertutup, dapat memanfaatkan display filter berikut:
+
+```
+tcp.flags.syn == 1 && tcp.flags.ack == 1
+tcp.flags.reset == 1
+```
+
+Dari hasil capture, terlihat perbedaan TCP Flag yang dikembalikan oleh Knights:
+
+| Port | Status   | Response dari Knights | Penjelasan                                                                                             |
+| ---- | -------- | --------------------- | ------------------------------------------------------------------------------------------------------ |
+| 22   | Terbuka  | SYN, ACK              | Ada service yang listening, sehingga server menyetujui koneksi dan three-way handshake dilanjutkan     |
+| 80   | Terbuka  | SYN, ACK              | Ada service yang listening, sehingga server menyetujui koneksi dan three-way handshake dilanjutkan     |
+| 7777 | Tertutup | RST, ACK              | Tidak ada service yang listening, sehingga server langsung menolak koneksi dan me-reset percobaan SYN  |
+
+[![](assets/tcp-synack-open-port.png)](assets/tcp-synack-open-port.png)
+[![](assets/tcp-rstack-closed-port.png)](assets/tcp-rstack-closed-port.png)
+
+Hasil dari capture dapat dilihat [disini](captures/capture-alice-portscan-knights.pcapng)
+
+
+<br>
+
+
+13. Lain memerintahkan agar administrasi jarak jauh menggunakan SSH secara aman tanpa password. Install OpenSSH server pada node Knights, buat pasangan kunci SSH (ssh-keygen) pada node Mika untuk user mika_admin, dan konfigurasikan public key authentication (PasswordAuthentication no). Lakukan koneksi SSH dari node Mika ke node Knights, tangkap sesi menggunakan Wireshark, identifikasi paket Protocol Version Exchange dan Key Exchange, serta jelaskan mengapa kredensial tidak terlihat dalam bentuk teks terbuka seperti pada Telnet.
+
+Pertama yang perlu dilakukan adalah melakukan instalasi ssh server pada node Knights menggunakan command berikut ini:
+
+```
+apt install openssh-server -y
+service ssh start
+```
+
+Setelah command diatas dijalankan maka seharusnya ssh server sudah berjalan di node Knights, terlihat pada screenshot dibawah ini:
+
+[![](assets/install-ssh-knights.png)](assets/install-ssh-knights.png)
+
+Next adalah membuat user mika_admin di node Knights (sebagai tujuan login) dan juga di node Mika (sebagai pemilik kunci)
+
+```
+useradd -m -s /bin/bash mika_admin
+echo "mika_admin:mika123" | chpasswd
+```
+
+[![](assets/new-user-mika-admin.png)](assets/new-user-mika-admin.png)
+
+Setelah itu pada node Mika, login sebagai user mika_admin kemudian membuat pasangan kunci SSH menggunakan `ssh-keygen`
+
+```
+su - mika_admin
+ssh-keygen -t ed25519
+```
+
+[![](assets/ssh-keygen-mika.png)](assets/ssh-keygen-mika.png)
+
+Dari command diatas akan terbentuk private key `~/.ssh/id_ed25519` dan public key `~/.ssh/id_ed25519.pub`. Selanjutnya public key tersebut perlu didaftarkan ke node Knights, yaitu dengan command berikut (dilakukan sebelum password authentication dimatikan):
+
+```
+ssh-copy-id mika_admin@<IP_Knights>
+```
+
+[![](assets/ssh-copy-id-mika.png)](assets/ssh-copy-id-mika.png)
+
+Kemudian pada node Knights, melakukan konfigurasi agar hanya bisa login menggunakan public key authentication, yaitu dengan mengubah file `/etc/ssh/sshd_config`
+
+```
+sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+sed -i 's/^#\?PubkeyAuthentication.*/PubkeyAuthentication yes/' /etc/ssh/sshd_config
+service ssh restart
+```
+
+- PasswordAuthentication no : menonaktifkan login menggunakan password
+- PubkeyAuthentication yes : mengaktifkan login menggunakan public key
+
+[![](assets/sshd-config-knights.png)](assets/sshd-config-knights.png)
+
+Kemudian melakukan cek koneksi apakah ssh server tersebut bisa berjalan dengan baik melalui node Mika menggunakan user mika_admin, dan login berhasil tanpa diminta password.
+
+```
+ssh mika_admin@<IP_Knights>
+```
+
+[![](assets/mika-ssh-knights.png)](assets/mika-ssh-knights.png)
+
+Bersamaan dengan login ke ssh Knights dapat dilakukan untuk melakukan capture connection tersebut menggunakan wireshark, dengan display filter `ssh`
+
+[![](assets/capture-mika-ssh-knights.png)](assets/capture-mika-ssh-knights.png)
+
+Dari hasil capture tersebut dapat diidentifikasi beberapa paket penting, yaitu:
+
+- **Protocol Version Exchange**: paket pertama dimana client dan server saling bertukar informasi versi protokol SSH yang digunakan (contoh `SSH-2.0-OpenSSH_x.x`). Paket ini masih terlihat plain text karena hanya berisi informasi versi dan belum ada data sensitif.
+
+[![](assets/ssh-protocol-version-exchange.png)](assets/ssh-protocol-version-exchange.png)
+
+- **Key Exchange**: tahap dimana client dan server saling bertukar daftar algoritma (Key Exchange Init) lalu melakukan pertukaran kunci (Diffie-Hellman/ECDH Key Exchange Init dan Reply) untuk membentuk *session key* bersama, diakhiri dengan paket *New Keys* sebagai tanda enkripsi mulai diaktifkan.
+
+[![](assets/ssh-key-exchange.png)](assets/ssh-key-exchange.png)
+
+Setelah paket *New Keys*, semua paket berikutnya hanya tampil sebagai *Encrypted packet*.
+
+[![](assets/ssh-encrypted-packet.png)](assets/ssh-encrypted-packet.png)
+
+Alasan mengapa kredensial tidak terlihat seperti pada Telnet adalah karena SSH mengenkripsi seluruh komunikasi setelah proses Key Exchange selesai, termasuk proses autentikasi. Berbeda dengan Telnet yang mengirim username dan password sebagai plain text, pada SSH data tersebut sudah terenkripsi dengan session key yang hanya diketahui oleh client dan server. Terlebih pada kasus ini menggunakan public key authentication, sehingga tidak ada password yang dikirim sama sekali. Private key tidak pernah meninggalkan node Mika, dan client hanya membuktikan kepemilikannya melalui tanda tangan digital (signature) yang juga terenkripsi di dalam sesi. Sehingga meskipun trafik berhasil disadap, penyerang hanya melihat data acak yang tidak dapat dibaca.
+
+Hasil dari capture dapat dilihat [disini](captures/capture-mika-ssh-knights.pcapng)
