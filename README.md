@@ -836,13 +836,15 @@ Hasil dari capture dapat dilihat [disini](captures/nomor-13-jarkom.pcapng)
 
 14. Setelah gagal mengakses FTP, Eiri melancarkan serangan brute-force terhadap form login web Alice. Analisis file capture wired_bruteforce.pcapng untuk mengidentifikasi alamat IP penyerang, target IP beserta port yang diserang, password user lain_admin yang berhasil ditembus, serta web server software dan versi yang dilaporkan pada response header.
 
-Buka file `wired_bruteforce.pcapng` di Wireshark. Untuk langsung menemukan percobaan login yang berhasil dari ratusan request brute-force, terapkan filter berikut:
+Buka file `wired_bruteforce.pcapng` di Wireshark. Untuk langsung menemukan percobaan login yang berhasil dari ratusan request brute-force, terapkan display filter berikut:
 
 ```
 http.response.code == 200
 ```
 
-Hanya ditemukan **1 paket** dengan response `200 OK` dari ratusan percobaan — inilah satu-satunya kombinasi credential yang berhasil ditembus. Klik kanan paket tersebut → **Follow** → **TCP Stream** untuk melihat detail lengkap request dan response:
+Hanya ditemukan **1 paket** dengan response `200 OK` dari ratusan percobaan, inilah satu-satunya kombinasi credential yang berhasil ditembus. Klik kanan paket tersebut → **Follow** → **TCP Stream**. Paket ini berada pada `tcp.stream 59`, dan hasilnya menampilkan request serta response secara lengkap:
+
+![follow-tcp-stream-soal14](assest/follow-tcp-stream-soal14.jpeg)
 
 ```
 POST /login.php HTTP/1.1
@@ -861,7 +863,7 @@ X-Powered-By: PHP/8.3.14
 <h1>Success! Login successful.</h1>
 ```
 
-Dari Follow TCP Stream terlihat request POST yang berhasil beserta seluruh header response server secara lengkap, termasuk identitas web server yang digunakan.
+Dari Follow TCP Stream terlihat request POST yang berhasil beserta seluruh header response server, termasuk identitas web server `Apache/2.4.62`. Header `Host` menunjukkan target serangan adalah `172.26.7.100` pada port `8080`, sedangkan pengirim request (penyerang) adalah `172.26.7.50`.
 
 Selanjutnya dilakukan validasi temuan pada socket server:
 
@@ -869,7 +871,7 @@ Selanjutnya dilakukan validasi temuan pada socket server:
 nc 10.4.89.250 3401
 ```
 
-![nc-validasi-soal14](assest/14-nc-validasi.jpeg)
+![nc-validasi-soal14](assest/nc-validasi-soal14.jpeg)
 
 Berikut adalah hasil identifikasi lengkap beserta validasi yang telah dikonfirmasi benar oleh server:
 
@@ -879,15 +881,16 @@ Berikut adalah hasil identifikasi lengkap beserta validasi yang telah dikonfirma
 | Target IP:Port | `172.26.7.100:8080` |
 | Password berhasil ditembus | `wired_pr0tocol_7` |
 | Web Server & versi | `Apache/2.4.62` |
-| Flag | `KOMJAR26{W1r3d_Brut3_Hju4HeKf3T5ucEDzmoBF9Uio8}` |
+| Flag | `KOMJAR26{W1r3d_Brut3_1quz5Wo4e8WD5LVqx7W802Q0c}` |
 
-Penyerang menggunakan tool **Fuzz Faster U Fool v2.1.0-dev** (ffuf) untuk melakukan brute-force ratusan kombinasi password secara otomatis ke endpoint `/login.php` pada `172.26.7.100:8080`. Seluruh percobaan sebelumnya menghasilkan response `401 Unauthorized`, hingga akhirnya credential `lain_admin:wired_pr0tocol_7` berhasil menembus autentikasi dan server merespons dengan `200 OK` beserta body `<h1>Success! Login successful.</h1>`.
+Penyerang menggunakan tool **Fuzz Faster U Fool v2.1.0-dev** (ffuf), terlihat dari header `User-Agent`, untuk mencoba ratusan kombinasi password secara otomatis ke endpoint `/login.php` pada `172.26.7.100:8080`. Hanya credential `lain_admin:wired_pr0tocol_7` yang berhasil menembus autentikasi, dan server merespons dengan `200 OK` beserta body `<h1>Success! Login successful.</h1>`.
 
-15. Eiri menyusup ke ruang server dan memasang perangkat _keyboard_ USB berbahaya pada node Alice. Dari file capture `wired_usb_hid.pcap`, identifikasi Vendor ID dan Product ID perangkat USB dari deskriptor USB, alamat nomor device USB, serta pesan rahasia yang berhasil dicuri dari keystroke. (link file) nc 10.4.89.250 3402
+15. Eiri menyusup ke ruang server dan memasang perangkat _keyboard_ USB berbahaya pada node Alice. Dari file capture `wired_usb_hid.pcap`, identifikasi Vendor ID dan Product ID perangkat USB dari deskriptor USB, alamat nomor device USB, serta pesan rahasia yang berhasil dicuri dari keystroke. ([link file](https://drive.google.com/drive/folders/1oAPzN9IEN0264_LlvGnl_CsIiYh-Hp8w?usp=drive_link)) nc 10.4.89.250 3402
 
-Analisis diawali dengan membuka file capture menggunakan `tshark` untuk mengambil Vendor ID dan Product ID dari _device descriptor_, alamat device USB dari field `usb.device_address`, serta nama perangkat dari _string descriptor_. Pada terminal yang sama, seluruh payload HID _interrupt transfer_ juga diekstrak ke sebuah file teks `hid_raw.txt` menggunakan filter `usb.capdata`.
+Analisis diawali dengan membuka file capture menggunakan `tshark` (dari folder tempat file berada) untuk mengambil Vendor ID dan Product ID dari _device descriptor_, alamat device USB dari field `usb.device_address`, serta nama perangkat dari _string descriptor_. Pada terminal yang sama, seluruh payload HID _interrupt transfer_ juga diekstrak ke sebuah file teks `hid_raw.txt` menggunakan filter `usb.capdata`.
 
 ```sh
+cd "/mnt/c/Users/Fujitsu Lifebook/Downloads"
 tshark -r soal15_wired_usb_hid.pcap -Y "usb.idVendor" -T fields -e usb.idVendor -e usb.idProduct
 tshark -r soal15_wired_usb_hid.pcap -Y "usb" -T fields -e usb.device_address | sort -u
 tshark -r soal15_wired_usb_hid.pcap -Y "usb.bDescriptorType == 0x03" -T fields -e usb.bString
@@ -895,9 +898,11 @@ tshark -r soal15_wired_usb_hid.pcap -Y "usb.capdata" -T fields -e usb.capdata > 
 cat hid_raw.txt
 ```
 
-Dari command tersebut didapatkan Vendor ID `0x046d` dan Product ID `0xc31c` (Logitech USB Keyboard), alamat device `7` (nilai `0` merupakan alamat _root hub_), serta nama perangkat `USB Keyboard`.
-
 ![tshark-vendor-product-device-address](assest/tshark-vendor-product-device-address.jpeg)
+
+Dari command tersebut didapatkan Vendor ID `0x046d` dan Product ID `0xc31c` (Logitech USB Keyboard). Untuk alamat device, muncul dua nilai yaitu `0` dan `7`. Nilai `0` adalah alamat default USB yang dipakai sebelum perangkat diberi alamat, sedangkan alamat yang ditetapkan untuk keyboard adalah `7`. Nama perangkat dari string descriptor adalah `USB Keyboard`.
+
+Isi `hid_raw.txt` menunjukkan setiap baris merupakan satu HID report sepanjang 8 byte. Sebagai contoh, baris pertama `02001a0000000000` berarti byte pertama (modifier) `0x02` yaitu tombol _shift_ ditekan, dan byte ketiga (keycode) `0x1a` yaitu huruf `w`, sehingga menghasilkan `W`. Baris yang seluruhnya bernilai nol menandakan tombol dilepas (_key release_) dan tidak perlu di-decode.
 
 Sebelum melanjutkan proses decoding, dilakukan instalasi `python3` pada environment WSL yang digunakan.
 
@@ -907,7 +912,7 @@ sudo apt update && sudo apt install python3 -y
 
 ![install-python3](assest/install-python3.jpeg)
 
-Karena setiap baris pada `hid_raw.txt` merupakan 8 byte HID report dengan keycode yang bukan berupa kode ASCII, dibuat sebuah script Python (`decode.py`) untuk melakukan mapping berdasarkan _USB HID Usage Table_ sekaligus menangani kondisi tombol _shift_.
+Karena keycode pada `hid_raw.txt` bukan berupa kode ASCII, dibuat sebuah script Python (`decode.py`) untuk melakukan mapping berdasarkan _USB HID Usage Table_ sekaligus menangani kondisi tombol _shift_.
 
 ```python
 keys = {
@@ -943,11 +948,9 @@ with open('hid_raw.txt') as f:
 print(result)
 ```
 
-Script dijalankan menggunakan `python3 decode.py` dan menghasilkan pesan rahasia `Wired_Protocol_7_is_alive_2026`.
+![script-decode-python](assest/script-decode-python-result.jpeg)
 
-![script-decode-python-result](assest/script-decode-python-result.jpeg)
-
-Seluruh jawaban kemudian divalidasi pada socket server `nc [IP_Group] 3402`, dan dinyatakan benar dengan diperolehnya flag.
+Script dijalankan menggunakan `python3 decode.py` dan menghasilkan pesan rahasia `Wired_Protocol_7_is_alive_2026`. Seluruh jawaban kemudian divalidasi pada socket server `nc 10.4.89.250 3402`, dan dinyatakan benar dengan diperolehnya flag.
 
 ![nc-validasi-soal15](assest/nc-validasi-soal15.jpeg)
 
@@ -957,23 +960,21 @@ Seluruh jawaban kemudian divalidasi pada socket server `nc [IP_Group] 3402`, dan
 | What is the Product ID of the captured USB HID device?   | 0xc31c                                                                |
 | What is the USB device address assigned to the keyboard? | 7                                                                     |
 | What is the secret message decoded from the captured keystrokes? | Wired_Protocol_7_is_alive_2026                                |
-| Flag                                                      | KOMJAR26{USB_K3ystr0k3_yINJHDw5VznRs6PwvQXOxbyhT}                     |
+| Flag                                                      | KOMJAR26{USB_K3ystr0k3_1mseHq2xQm68ZMbx7U1eoaOKI}                     |
 
 16. Eiri meletakkan file malware di server. Dari file capture `wired_ftp_theft.pcap`, lakukan analisis lalu lintas FTP untuk mengidentifikasi alamat IP server FTP penyerang, banner software FTP yang digunakan, kredensial login penyerang, serta ukuran (size in bytes) dari file malware `knights_payload.exe` yang diunduh. ([link file](https://drive.google.com/drive/folders/1qBeAXVx1MG14L0jzGefqs3t8qO8VRMmb?usp=sharing)) nc 10.4.89.250 3403
 
-File capture dibuka pada Wireshark, kemudian ditemukan lebih dari satu sesi FTP pada capture tersebut. Sesi yang relevan dengan pencurian file (stream nomor 6) diverifikasi terlebih dahulu melalui `tshark`, dengan mengecek pasangan IP yang terlibat pada stream tersebut serta arah pengirim _banner_ (response kode `220`).
+File capture dibuka pada Wireshark, dan ditemukan lebih dari satu sesi FTP di dalamnya. Sesi yang memuat pengunduhan `knights_payload.exe` berada pada `tcp.stream 6`, sehingga analisis dibatasi dengan display filter berikut:
 
-```sh
-tshark -r soal16_wired_ftp_theft.pcapng -Y "tcp.stream == 6" -T fields -e ip.src -e ip.dst | sort -u
-tshark -r soal16_wired_ftp_theft.pcapng -Y "tcp.stream == 6 && ftp.response.code == 220" -T fields -e ip.src -e ip.dst
+```
+tcp.stream eq 6
 ```
 
-![tshark-cek-ip-stream6](assest/tshark-cek-ip-stream6.jpeg)
-![tshark-cek-banner-stream6](assest/tshark-cek-banner-stream6.jpeg)
+![filter-tcp-stream-6](assest/filter-tcp-stream-6.jpeg)
 
-Kedua command tersebut mengonfirmasi bahwa IP server FTP yang sebenarnya adalah `198.51.100.7`, bukan `10.7.3.50` (yang merupakan IP client/attacker pada stream tersebut).
+Pada daftar paket terlihat komunikasi antara `10.7.3.50` (client, port `54321`) dan `198.51.100.7` (server, port `21`). Paket response yang berasal dari port 21 (misalnya `227 Entering Passive Mode`, `213 524288`, dan `226 Transfer complete`) selalu dikirim oleh `198.51.100.7`, sehingga IP server FTP yang sebenarnya adalah `198.51.100.7`, bukan `10.7.3.50` yang merupakan IP client/attacker pada stream tersebut.
 
-Selanjutnya, stream nomor 6 diperiksa lebih lanjut melalui **Follow → TCP Stream** pada Wireshark GUI untuk melihat rangkaian komunikasi FTP secara lengkap.
+Selanjutnya, stream nomor 6 diperiksa lebih lanjut melalui klik kanan paket → **Follow → TCP Stream** untuk melihat rangkaian komunikasi FTP secara lengkap.
 
 ```
 220 Welcome to Wired FTP Server (vsftpd 3.0.5)
@@ -1003,11 +1004,11 @@ RETR knights_payload.exe
 226 Transfer complete.
 ```
 
-Dari stream tersebut diperoleh banner software FTP `vsftpd 3.0.5`, kredensial login berupa username `knights_agent` dan password `N4v1_s3cur3_2026`. Ukuran file `knights_payload.exe` dikonfirmasi ganda, yaitu melalui response perintah `SIZE` (`213 524288`) dan melalui response perintah `RETR` (`524288 bytes`), sehingga tidak diperlukan penghitungan manual terhadap raw payload data.
-
 ![follow-tcp-stream-ftp](assest/follow-tcp-stream-ftp.jpeg)
 
-Seluruh jawaban kemudian divalidasi pada socket server `nc 10.4.89.250 3403`. Pada percobaan pertama, jawaban ukuran file sempat salah dimasukkan (`66`, hasil kesalahan baca), namun setelah dikoreksi menjadi `524288`, seluruh jawaban dinyatakan benar dan flag berhasil diperoleh.
+Dari stream tersebut diperoleh banner software FTP `vsftpd 3.0.5` (pada response `220`), kredensial login berupa username `knights_agent` dan password `N4v1_s3cur3_2026`. Ukuran file `knights_payload.exe` dikonfirmasi ganda, yaitu melalui response perintah `SIZE` (`213 524288`) dan melalui response perintah `RETR` (`524288 bytes`), sehingga tidak diperlukan penghitungan manual terhadap raw payload data.
+
+Seluruh jawaban kemudian divalidasi pada socket server `nc 10.4.89.250 3403`, dan dinyatakan benar dengan diperolehnya flag.
 
 ![nc-validasi-soal16](assest/nc-validasi-soal16.jpeg)
 
@@ -1017,22 +1018,30 @@ Seluruh jawaban kemudian divalidasi pada socket server `nc 10.4.89.250 3403`. Pa
 | What FTP server software banner is returned upon connection?      | vsftpd 3.0.5                                 |
 | What credential did the attacker use to log in to the FTP server? | knights_agent:N4v1_s3cur3_2026               |
 | What is the size in bytes of the malware file (knights_payload.exe) requested via FTP? | 524288                   |
-| Flag                                                               | KOMJAR26{FTP_Th3ft_XZhQWkBUEtduGuTJHhz971tyI} |
+| Flag                                                               | KOMJAR26{FTP_Th3ft_i2k6vsChjBbsn8XHSET2H6k9N} |
 
 17. Alice membuat halaman web di node-nya. Eiri memanfaatkan celah untuk mengunduh payload berbahaya ke sistem Alice. Analisis file capture `wired_http_c2.pcap` untuk mengidentifikasi nama domain (Host) tempat malware diunduh, alamat IP server penyerang, nama file executable malware yang diunduh, serta kode status HTTP yang dikembalikan. ([link file](https://drive.google.com/drive/folders/1iPYESj5AN-uXYXfD2Wo2cRrm_Rigr_D6?usp=sharing)) nc 10.4.89.250 3404
 
-File capture dianalisis menggunakan `tshark` untuk menelusuri domain yang diakses beserta IP tujuannya. Dari hasil penelusuran HTTP request sebelumnya, ditemukan bahwa file executable `navi_agent.exe` diunduh dari domain `wired-update.net`. Untuk memastikan alamat IP server penyerang, dilakukan verifikasi silang melalui dua pendekatan, yaitu resolusi DNS terhadap domain tersebut dan pengecekan `ip.dst` pada paket request file executable.
+File capture dibuka pada Wireshark, lalu diterapkan display filter berikut untuk melihat seluruh request HTTP yang ada:
 
-```sh
-tshark -r soal17_wired_http_c2.pcapng -Y "dns.qry.name == \"wired-update.net\"" -T fields -e dns.qry.name -e dns.a
-tshark -r soal17_wired_http_c2.pcapng -Y "http.request.uri == \"/navi_agent.exe\"" -T fields -e ip.src -e ip.dst
+```
+http.request
 ```
 
-Kedua command tersebut sama-sama menghasilkan IP `203.0.113.42`, sehingga temuan ini dinyatakan valid dan konsisten.
+![filter-http-request-soal17](assest/filter-http-request-soal17.jpeg)
+
+Filter ini menampilkan 3 request dari total 31 paket: `GET /style.css` ke `203.0.113.55`, `GET /` ke `203.0.113.77`, dan `GET /navi_agent.exe` dari `10.7.1.50` ke `203.0.113.42` (paket nomor 30). Hanya request ketiga yang meminta file executable, sehingga paket inilah yang dianalisis. Pada panel detail *Hypertext Transfer Protocol* terlihat:
+
+- `Request URI`: `/navi_agent.exe`, sehingga nama file malware adalah `navi_agent.exe`
+- `Host`: `wired-update.net`, yang merupakan domain tempat malware diunduh
+- `Full request URI`: `http://wired-update.net/navi_agent.exe`
+- Kolom **Destination** pada paket ini adalah `203.0.113.42`, yang merupakan IP server penyerang. Dua request lainnya menuju IP yang berbeda dan tidak meminta file executable.
+
+Pada panel detail juga terdapat tautan `[Response in frame: 31]`. Paket response tersebut mengembalikan status `HTTP/1.1 200 OK`, artinya file executable berhasil diunduh oleh client.
 
 Seluruh jawaban kemudian divalidasi pada socket server `nc 10.4.89.250 3404`, dan dinyatakan benar dengan diperolehnya flag.
 
-![tshark-dns-http-nc-validasi-soal17](assest/tshark-dns-http-nc-validasi-soal17.jpeg)
+![nc-validasi-soal17](assest/tshark-dns-http-nc-validasi-soal17.jpeg)
 
 | Question                                                    | Answer                                     |
 | -------------------------------------------------------------- | --------------------------------------------- |
@@ -1045,22 +1054,25 @@ Seluruh jawaban kemudian divalidasi pada socket server `nc 10.4.89.250 3404`, da
 18. Eiri mengubah taktik penyerangan dengan menanamkan file malware menggunakan protokol file sharing SMB. Analisis file capture `wired_smb_transfer.pcapng` untuk mengidentifikasi nama protokol jaringan yang dieksploitasi, IP pengirim dan penerima, folder tujuan penyimpanan malware pada sistem korban, serta nama file executable malware yang ditransfer. 
 ([link file](https://drive.google.com/file/d/1XBtKWtNM_RrSBTp2e3O5vBdiklcPNsKs/view?usp=sharing)) nc 10.4.89.250 3405
 
-Pertama-tama file capture dibuka dan dianalisis menggunakan `tshark`. Seluruh trafik yang ada merupakan protokol **SMB2** (Server Message Block versi 2) yang berjalan di atas TCP port 445, terlihat dari rangkaian paket *Negotiate Protocol Request/Response*, *Session Setup Request/Response*, hingga **Tree Connect Request** yang menunjukkan share `\\10.7.1.50\ADMIN$` diakses.
+File capture dibuka pada Wireshark. Kolom Protocol menampilkan **SMB2** (Server Message Block versi 2) yang berjalan di atas TCP port 445. Untuk mengetahui share yang diakses, diterapkan display filter Tree Connect berikut:
 
-Nama file dan path relatif tujuan diambil dari paket **Create Request** menggunakan command berikut, dan seluruh alur paket (SYN hingga Close Response) ditampilkan untuk melihat urutan lengkap transfer:
-
-```sh
-tshark -r soal18_wired_smb_transfer.pcapng -Y "smb2.filename" -T fields -e frame.number -e smb2.tree -e smb2.filename | sort -u
-tshark -r soal18_wired_smb_transfer.pcapng
+```
+smb2.cmd == 3
 ```
 
-![smb-tshark-evidence](assest/smb-tshark-evidence.jpeg)
+![filter-smb2-tree-connect](assest/filter-smb2-tree-connect.jpeg)
 
-Hasil filter menunjukkan file `System32\wired_trojan_payload.exe` ditulis ke dalam share `ADMIN$`. Share `\\10.7.1.50\ADMIN$` inilah yang menjadi target directory tujuan penyimpanan malware pada sistem korban — merupakan administrative share default Windows yang memetakan langsung ke direktori instalasi sistem (`C:\Windows\`).
+Filter ini menampilkan 2 paket dari total 27 paket. Paket nomor 12 adalah **Tree Connect Request** dari `10.7.3.100` ke `10.7.1.50` untuk share `\\10.7.1.50\ADMIN$`, dan paket nomor 14 adalah **Tree Connect Response** dari `10.7.1.50` (port `445`) kembali ke `10.7.3.100`. Dari sini diketahui `10.7.3.100` adalah pengirim malware, `10.7.1.50` adalah sistem korban, dan share tujuannya `ADMIN$`.
+
+Selanjutnya, nama file diperiksa dengan klik kanan salah satu paket → **Follow → TCP Stream** (stream 0):
+
+![follow-tcp-stream-smb](assest/follow-tcp-stream-smb.jpeg)
+
+Pada hasil Follow Stream terlihat path `System32\wired_trojan_payload.exe` (disorot, dalam encoding UTF-16 sehingga setiap karakter dipisahkan titik), diikuti isi file yang diawali header `MZ`, yaitu penanda file executable Windows, dan berisi string `WIRED_PROTOCOL_7_EXPLOIT_PAYLOAD` yang berulang. Share `\\10.7.1.50\ADMIN$` merupakan administrative share default Windows yang memetakan langsung ke direktori instalasi sistem (`C:\Windows\`), sehingga malware tersimpan di `C:\Windows\System32\` pada sistem korban.
 
 Transfer file dikonfirmasi berhasil melalui paket **Write Request** (berisi 1028 byte data) dan diakhiri dengan **Close Request/Response**.
 
-Seluruh jawaban kemudian divalidasi melalui socket server dan dinyatakan benar.
+Seluruh jawaban kemudian divalidasi melalui socket server `nc 10.4.89.250 3405` dan dinyatakan benar.
 
 ![smb-nc-validation](assest/smb-nc-validation.jpeg)
 
@@ -1076,25 +1088,27 @@ Seluruh jawaban kemudian divalidasi melalui socket server dan dinyatakan benar.
 19. Eiri meneror jaringan dengan mengirimkan email pemerasan melalui protokol SMTP tanpa enkripsi. Analisis file capture `wired_smtp_threat.pcapng` pada stream TCP terkait, identifikasi alamat email korban yang ditargetkan, password korban yang diklaim bocor oleh penyerang, jenis malware yang diinfeksikan, batas waktu (dalam hari) yang diberikan, serta MailClientID yang tercantum pada pesan.
     ([link file](https://drive.google.com/drive/folders/1RAW0cMoGDDStPyFHeJ_0t9kkoLGBsCmH?usp=sharing)) nc 10.4.89.250 3406
 
-Capture ini ternyata berisi empat sesi SMTP berbeda yang berjalan hampir bersamaan: email internal biasa, balasan internal, email spam yang ditolak server (`550 Blocked by spam filter`), dan satu sesi dari IP eksternal yang mencurigakan. Untuk mengisolasi sesi yang relevan, dilakukan filtering berdasarkan pasangan IP sumber dan tujuan yang berada di luar jaringan internal:
+File capture dibuka pada Wireshark. Capture ini berisi beberapa sesi SMTP yang berjalan hampir bersamaan, sehingga untuk melihat email mana saja yang benar-benar terkirim diterapkan display filter `imf` (Internet Message Format):
 
-```sh
-tshark -r soal19_wired_smtp_threat.pcapng -Y "ip.addr == 185.234.72.19 && ip.addr == 203.0.113.100" -T fields -e tcp.stream | sort -u -n
+```
+imf
 ```
 
-Ditemukan sesi tersebut berada pada `tcp.stream 6`. Setelah stream yang tepat ditemukan, seluruh isi percakapan SMTP di-follow untuk membaca body email secara lengkap:
+![filter-imf-soal19](assest/filter-imf-soal19.jpeg)
 
-```sh
-tshark -r soal19_wired_smtp_threat.pcapng -q -z follow,tcp,ascii,6
-```
+Filter ini menampilkan 3 email dari total 100 paket:
 
-![smtp-follow-stream-command](assest/smtp-follow-stream-command.jpeg)
+- `10.7.2.10` → `10.7.2.20`, subject *"Laporan FTP mingguan"* (email internal biasa)
+- `10.7.2.30` → `10.7.2.40`, subject *"Konfirmasi report"* (balasan internal)
+- `185.234.72.19` → `203.0.113.100`, dari `attacker@darkwired.net` dengan subject *"URGENT: Your Wired account has been compromised"*
 
-Hasil follow stream menampilkan email lengkap dari `attacker@darkwired.net` ke `victim@protocol7.co.jp` dengan subjek *"URGENT: Your Wired account has been compromised"*. Isi email berupa ancaman pemerasan bergaya ransomware, mengklaim telah membobol sistem korban dan meminta tebusan dalam Bitcoin dengan batas waktu tertentu.
+Dua email pertama berasal dari jaringan internal `10.7.2.x`, sedangkan email ketiga berasal dari IP eksternal yang mencurigakan menuju port 25 (SMTP), sehingga paket nomor 86 inilah yang relevan. Klik kanan paket tersebut → **Follow → TCP Stream**, yang berada pada `tcp.stream 6`, untuk membaca isi percakapan SMTP secara lengkap:
 
-![smtp-extortion-email-content](assest/smtp-extortion-email-content.jpeg)
+![follow-tcp-stream-smtp](assest/follow-tcp-stream-smtp.jpeg)
 
-Seluruh jawaban kemudian divalidasi melalui socket server dan dinyatakan benar.
+Hasil follow stream menampilkan email dari `attacker@darkwired.net` ke `victim@protocol7.co.jp`. Isi email berupa ancaman pemerasan bergaya ransomware: penyerang mengklaim telah membobol sistem korban melalui Protocol 7, menyebut korban menggunakan password `pr0tocol_7_user`, menyatakan komputer korban terinfeksi *private ransomware*, dan menuntut pembayaran 2 BTC dengan batas waktu 72 jam (3 hari). Di bagian akhir pesan tercantum `MailClientID: 7719980706`.
+
+Seluruh jawaban kemudian divalidasi melalui socket server `nc 10.4.89.250 3406` dan dinyatakan benar.
 
 ![smtp-nc-validation](assest/smtp-nc-validation.jpeg)
 
